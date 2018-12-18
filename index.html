@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>car</title>
+    <link rel="stylesheet">
+    <style>
+        html,body {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+            margin: 0px;
+        }
+        /*#container {*/
+            /*position: absolute;*/
+            /*width: 400px;*/
+            /*height: 400px;*/
+            /*left:50%;*/
+            /*top: 50%;*/
+            /*to {top:50%;left:50%;transform: translateX(-50%) translateY(-50%);}*/
+        /*}*/
+
+        /*@-webkit-keyframes mymove !*Safari and Chrome*!*/
+        /*{*/
+            /*from {top:0%;left:0%}*/
+            /*to {top:50%;left:50%;transform: translateX(-50%) translateY(-50%);}*/
+        /*}*/
+
+
+    </style>
+</head>
+<body onload="draw()">
+<!--模型格式传入，需要对应的加载器-->
+<select id="mySelect" onchange="gradeChange()">
+    <option value="models/fbx/Samba Dancing.fbx">FBX 模型</option>
+    <option value="models/obj/male02/male02.mtl">OBJ 模型</option>
+    <option value="models/json/teapot-claraio.json">JSON 模型</option>
+</select>
+<div id="container">
+
+</div>
+</body>
+<script src="libs/three.js"></script>
+<script src="libs/OrbitControls.js"></script>
+<script src="libs/OBJLoader.js"></script>
+<script src="libs/STLLoader.js"></script>
+<script src="libs/MTLLoader.js"></script>
+<script src="WebViewModel.js"></script>
+<script src="libs/inflate.min.js"></script>
+<!--<script src="js/WebViewModel.js"></script>-->
+<script src="libs/FBXLoader.js"></script>
+<script src="libs/DDSLoader.js"></script>
+</html>

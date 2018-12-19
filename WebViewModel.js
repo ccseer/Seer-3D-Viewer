@@ -5,6 +5,7 @@
     var bounding = {x:0,y:0,z:0,radius:0}
     var initPosition = false;
     var model_url = 'models/json/teapot-claraio.json';
+    var resetDate = {position:new THREE.Vector3(0,0,0),rotation:new THREE.Vector3(0,0,0),}
     function initRender() {                 //渲染方式
         renderer = new THREE.WebGLRenderer({
             alpha: true,
@@ -29,14 +30,17 @@
      scene = new THREE.Scene();
 
      }
-    function gradeChange() {
+     document.addEventListener("dblclick",function (ev) {
+         initPosition = true;
+     })
+    function gradeChange() {            // 获取模型的路径
         var objS = document.getElementById("mySelect");
         var grade = objS.options[objS.selectedIndex].value;
         if(grade == model_url){return;}
-        model_url = grade;
+        model_url = grade;          // 模型路径传入
         console.log(model_url);
-        disposeScene();
-        initLoader();
+        disposeScene();         // 去掉场景内部的其他模型；
+        initLoader();       // 开始加载模型；
     }
     function initLight() {      //灯光渲染
         light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
@@ -184,6 +188,9 @@
             modelShow.traverse(function (child) {
                 if(child.type == 'SkinnedMesh'||child.type == 'Mesh'){
                     camera.position.set(child.geometry.boundingSphere.center.x,child.geometry.boundingSphere.center.y,child.geometry.boundingSphere.center.z + 2*child.geometry.boundingSphere.radius);
+                    resetDate.position = camera.position;
+                    resetDate.rotation = camera.rotation;
+                    console.log(resetDate);
                     initPosition = false;
                     return;
                 }
@@ -193,9 +200,7 @@
     }
 
 
-    function setCameraPosition(x,y,z,radius) {
-        return camera.position(x,y,z+2*radius);
-    }
+
 
 
     function draw() {       //初始化方法

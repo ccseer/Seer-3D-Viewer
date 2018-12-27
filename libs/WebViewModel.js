@@ -1,1 +1,328 @@
-eval(function(p,a,c,k,e,d){e=function(c){return(c<a?"":e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1;};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p;}('8 h;8 N;8 q=a 9.Q();8 t=a 9.Q();8 C=a 9.Q();c X(){h=a 9.1B({1A:g,1D:g});h.11(M,H);h.19.1C=g;h.19.1w=9.1z;h.1y(1J);1I.1L("1K").1F(h.1f)}8 k;8 1b="1E/1H-7.Z";c 14(){k=a 9.1G(1v,r.M/r.H,0.1,1m);k.B.o(23,10,-25.7);}8 m;c Y(){m=a 9.1k();8 J=a 9.1c();8 I=a 9.1l();8 16=a 9.1j();16.K(\'1h.1i\',c(17){I.1n=17;I.1s=g;8 b=a 9.1t(1u,20,1r);8 p=a 9.1o({1p:9.1q,1M:I});8 v=a 9.R(b,p);v.p.24=g;v.D.x=A.F/2;v.D.y=A.F;v.B.o(0,-20,0);m.i(v)});8 1d=a 9.27();8 J=a 9.1c();1d.K(\'2d/28.s\',c(s){s.j[0].b.U();8 f=s.j[0].b.u.T;s.B.o(-f.x,-f.y,-f.z);N=s.j[0].b.u.S;q.i(s);q.P.o(0.l,0.l,0.l);q.j[0].w=g;m.i(q);J.K(1b,c(b){8 p=a 9.W();8 e=a 9.R(b,p);e.b.U();8 f=e.b.u.T;8 O=e.b.u.S;8 n=A.12(N/O);e.B.o(-f.x,-f.y,-f.z);t.i(e);t.P.o(0.l*n,0.l*n,0.l*n);t.j[0].w=L;m.i(t)});J.K(\'2b.Z\',c(b){8 p=a 9.W();8 e=a 9.R(b,p);e.b.U();8 f=e.b.u.T;8 O=e.b.u.S;8 n=A.12(N/O);e.B.o(-f.x,-f.y,-f.z-1X);C.P.o(0.l*n,0.l*n,0.l*n);C.i(e);C.D.y=A.F;C.D.x=A.F/2;m.i(C)})})}c 1T(){q.j[0].w=g;t.j[0].w=L;}c 1S(){q.j[0].w=L;t.j[0].w=g;}c 15(){8 G=a 9.26(1g,0.6);G.B.y=0;G.D.z=0;m.i(G);8 1e=a 9.1x(1g,0.4);k.i(1e);m.i(k)}8 d;c 1a(){d=a 9.2a(k,h.1f);d.22(\'29\',E);d.1R=g;d.13=0.3;d.1Q=g;d.1Z=g;d.1U=0.3;d.1W=0.5;d.1V=0.6;d.13=0.6;d.21=L;}c E(){h.E(m,k)}c 18(){k.1Y=r.M/r.H;k.1P();E();h.11(r.M,r.H);}c V(){E();1O(V)}c 1N(){14();X();Y();15();1a();V();r.2c=18}',62,138,'||||||||var|THREE|new|geometry|function|controls|mesh|objPosition|true|renderer|add|children|camera|01|scene|count|set|material|groupObj|window|obj|groupSTl|boundingSphere|plane|visible||||Math|position|groupObjct|rotation|render|PI|directionLight|innerHeight|texture|loader|load|false|innerWidth|normalRadius|meshRadius|scale|Group|Mesh|radius|center|computeBoundingSphere|animate|MeshPhongMaterial|initRender|initScene|stl||setSize|round|dampingFactor|initCamera|initLight|imgLoader|img|onWindowResize|shadowMap|initControls|loaderUrl|STLLoader|objloader|pointLight|domElement|0xffffff|logoLeft|png|ImageLoader|Scene|Texture|100000|image|MeshBasicMaterial|side|DoubleSide|32|needsUpdate|PlaneGeometry|60|70|type|PointLight|setClearColor|PCFSoftShadowMap|alpha|WebGLRenderer|enabled|antialias|MODEL|appendChild|PerspectiveCamera|PD_185A1341|document|0xB9D3EE|container|getElementById|map|draw|requestAnimationFrame|updateProjectionMatrix|enableZoom|enableDamping|loadSTLModel|loadOBJModel|rotateSpeed|autoRotateSpeed|zoomSpeed|130|aspect|enablePan||autoRotate|addEventListener||transparent||DirectionalLight|OBJLoader|3DModel|change|OrbitControls|Winho|onresize|model'.split('|'),0,{}))
+var renderer, light, mixers = [];
+var clock = new THREE.Clock();
+var modelShow;
+var bounding = {x: 0, y: 0, z: 0, radius: 0}
+var initPosition = false;
+var model_url     // 模型路径
+var resetDate = {position: new THREE.Vector3(0, 0, 0), rotation: new THREE.Vector3(0, 0, 0),}
+
+function initRender() {                 //渲染方式
+    renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true
+    });
+
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0xd7d7d7);
+    document.getElementById("container").appendChild(renderer.domElement);
+
+}
+
+function getModelUrl() {
+    var storage = window.localStorage;
+    model_url = storage["url"];     // 模型路径
+}
+
+var fontModel;
+
+function initErrorModel() {
+
+    var font;
+    var loader = new THREE.FontLoader();
+    loader.load("libs/gentilis_regular.typeface.json", function (res) {
+        font = new THREE.TextBufferGeometry("Failed to load", {
+            font: res,
+            size: 100,
+            height: 20
+        });
+
+        font.computeBoundingBox(); // 运行以后设置font的boundingBox属性对象，如果不运行无法获得。
+        //font.computeVertexNormals();
+
+        var material = new THREE.MeshLambertMaterial({color: '#ff4c4c', side: THREE.DoubleSide});
+        fontModel = new THREE.Mesh(font, material);
+        fontModel.scale.set(0.1, 0.1, 0.1);
+
+        //设置位置
+        fontModel.name = "error_model"
+        fontModel.position.x = -(font.boundingBox.max.x * 0.1 - font.boundingBox.min.x * 0.1) / 2; //计算出整个模型的宽度的一半
+        scene.add(fontModel);
+    });
+}
+
+var camera;
+
+function initCamera() {
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100000);
+    camera.position.set(0, 0, 100);               //摄像机位置
+}
+
+var scene;
+var grid
+
+function initScene() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd7d7d7);
+    grid = new THREE.GridHelper(200, 40, 0x000000, 0x000000);
+    grid.position.y = -20;
+    grid.material.opacity = 0.2;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+}
+
+document.addEventListener("dblclick", function (ev) {
+    initPosition = true;
+})
+
+function gradeChange() {            // 获取模型的路径
+    var objS = document.getElementById("mySelect");
+    var grade = objS.options[objS.selectedIndex].value;
+    if (grade == model_url) {
+        return;
+    }
+    model_url = grade;          // 模型路径传入
+    console.log(model_url);
+    disposeScene();         // 去掉场景内部的其他模型；
+    initLoader();       // 开始加载模型；
+}
+
+function initLight() {      //灯光渲染
+    light = new THREE.HemisphereLight(0xffffff, 0x444444);
+    light.position.set(0, 200, 0);
+    scene.add(light);
+
+    light = new THREE.DirectionalLight(0xffffff);
+    light.position.set(0, 200, 100);
+    light.castShadow = true;
+    light.shadow.camera.top = 180;
+    light.shadow.camera.bottom = -100;
+    light.shadow.camera.left = -120;
+    light.shadow.camera.right = 120;
+    scene.add(light);
+}
+
+function disposeScene() {
+    console.log(scene);
+    scene.remove(scene.children[scene.children.length - 1]);
+    console.log(scene);
+}
+
+function initLoader() {
+    // ========   fbx loader
+    var onProgress = function (xhr) {
+        if (xhr.lengthComputable) {
+            var percentComplete = xhr.loaded / xhr.total * 100;
+            console.log(Math.round(percentComplete, 2) + '% downloaded');
+        }
+    };
+
+    var onError = function () {
+        initErrorModel();
+    };
+    if (model_url.indexOf('.fbx') > 0) {
+
+        var loader = new THREE.FBXLoader();    // 加载fbx 模型
+        try {
+            loader.load(model_url, function (object) {
+
+                object.mixer = new THREE.AnimationMixer(object);
+                mixers.push(object.mixer);
+
+                var action = object.mixer.clipAction(object.animations[0]);
+                action.play();
+
+                object.traverse(function (child) {
+
+                    if (child.isMesh) {
+
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+
+                });
+                modelShow = object;
+                modelShow.rotation.y = Math.PI / 4;
+                scene.add(object);
+                initPosition = true;
+
+            }, onProgress, onError);
+        } catch (e) {
+            initErrorModel();
+        }
+    } else if (model_url.indexOf('.obj') > 0) {
+
+        THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+        var loader = new THREE.OBJLoader();
+        try {
+            loader.load(model_url, function (obj) {
+
+                modelShow = obj;
+                console.log(obj);
+                scene.add(modelShow);
+
+            }, onProgress, onError);
+        } catch (e) {
+            initErrorModel();
+        }
+    } else if (model_url.indexOf('.json') > 0) {
+        // json loader
+        var objectLoader = new THREE.ObjectLoader();
+        try {
+            objectLoader.load(model_url, function (obj) {
+                console.log(model_url);
+                modelShow = obj;
+                modelShow.rotation.y = Math.PI / 4;
+                initPosition = true;
+                scene.add(obj);
+            }, onProgress, onError);
+        } catch (e) {
+            initErrorModel();
+        }
+    } else if (model_url.indexOf('.gltf') > 0) {
+        var loader = new THREE.GLTFLoader();
+        try {
+            loader.load(model_url, function (gltf) {
+                gltf.scene.traverse(function (child) {
+                    if (child.isMesh) {
+                        if (mesh.geometry.boundingSphere < 1) {
+                            mesh.scale.set(100, 100, 100);
+                        } else if (mesh.geometry.boundingSphere < 10) {
+                            mesh.scale.set(20, 20, 20);
+                        }
+                    }
+                });
+                modelShow = gltf.scene;
+                modelShow.rotation.y = Math.PI / 4;
+                scene.add(gltf.scene);
+            }, onProgress, onError);
+        } catch (e) {
+            initErrorModel();
+        }
+    } else if (model_url.indexOf('.stl') > 0) {
+        var loader = new THREE.STLLoader();
+        try {
+            loader.load(model_url, function (geometry) {
+                var material = new THREE.MeshPhongMaterial({
+                    color: 0xff5533,
+                    specular: 0x111111,
+                    shininess: 200
+                })
+                console.log(geometry);
+                var mesh = new THREE.Mesh(geometry, material);
+                if (mesh.geometry.boundingSphere < 1) {
+                    mesh.scale.set(100, 100, 100);
+                } else if (mesh.geometry.boundingSphere < 10) {
+                    mesh.scale.set(20, 20, 20);
+                }
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                modelShow = mesh;
+                modelShow.rotation.y = Math.PI / 4;
+                scene.add(mesh);
+            }, onProgress, onError);
+        } catch (e) {
+            initErrorModel();
+        }
+
+    } else {
+        initErrorModel();
+    }
+}
+
+var controls;
+
+function initControls() {           //控制脚本
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', render);
+    controls.enableDamping = true;               //定义可以拖拽
+    controls.dampingFactor = 0.3;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.rotateSpeed = 0.3;                 //控制旋转速度
+    controls.zoomSpeed = 0.5;                   //缩放速度
+    controls.autoRotateSpeed = 0.6;             //自动旋转速度
+    controls.dampingFactor = 0.6;
+    controls.autoRotate = false;                //控制是否自动旋转
+
+}
+
+// model loader
+
+
+function render() {
+    renderer.render(scene, camera);
+
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    render();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    //controls.handleResize();
+}
+
+function animate() {
+    render();
+    controls.update();
+
+    if (mixers.length > 0) {
+
+        for (var i = 0; i < mixers.length; i++) {
+
+            mixers[i].update(clock.getDelta());
+
+        }
+
+    }
+    requestAnimationFrame(animate);
+    if (fontModel) {
+        fontModel.lookAt(camera.position);
+    }
+    if (modelShow && initPosition) {
+        console.log(modelShow);
+        if (!modelShow.isMesh) {
+            console.log('ismesh');
+            modelShow.traverse(function (child) {
+                if (child.type == 'SkinnedMesh' || child.type == 'Mesh') {
+                    camera.position.set(child.geometry.boundingSphere.center.x, child.geometry.boundingSphere.center.y * 2, child.geometry.boundingSphere.center.z + 2 * child.geometry.boundingSphere.radius);
+                    resetDate.position = camera.position;
+                    resetDate.rotation = camera.rotation;
+                    console.log(resetDate);
+                    initPosition = false;
+                    return;
+                }
+            })
+        } else {
+            console.log('notmesh');
+            if (modelShow.geometry.boundingSphere.radius < 0.5) {
+                camera.position.set(modelShow.geometry.boundingSphere.center.x, modelShow.geometry.boundingSphere.center.y * 2, modelShow.geometry.boundingSphere.center.z + 500 * modelShow.geometry.boundingSphere.radius);
+                resetDate.position = camera.position;
+                resetDate.rotation = camera.rotation;
+                console.log(resetDate);
+                initPosition = false;
+                return;
+            }
+
+        }
+
+    }
+}
+
+
+function draw() {       //初始化方法
+
+    getModelUrl();
+    initCamera();
+    initRender();
+    initScene();
+    initLoader();
+    initLight();
+    initControls();
+    animate();
+
+    window.onresize = onWindowResize;
+}

@@ -26,7 +26,7 @@
 
     </div>
 </body>
-<script src="libs/WebViewModel.js"></script>
+
 <script src="libs/three.js"></script>
 <script src="libs/OrbitControls.js"></script>
 <script src="libs/OBJLoader.js"></script>
@@ -36,11 +36,11 @@
 <script src="libs/GLTFLoader.js"></script>
 <script src="libs/FBXLoader.js"></script>
 <script src="libs/DDSLoader.js"></script>
-<script type="text/javascript"> 
+<script src="libs/WebViewModel.js"></script>
+<script type="text/javascript">
     if (!window.localStorage) {
         // alert('no support localStorage');
     } else {
-        // var model_url = 'models/stl/ascii/pr2_head_pan.stl';
         var model_url = 'PLACEHOLDER_FILEPATH';
         var storage = window.localStorage;
         storage["url"] = model_url;

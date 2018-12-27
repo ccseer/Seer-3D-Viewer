@@ -2,11 +2,11 @@ var renderer, light, mixers = [];
 var modelShow = new THREE.Group();
 var initPosition = true;
 var clock = new THREE.Clock();
-var model_url // 模型路径
-var model_center; // 模型中心
+var model_url     // 模型路径
+var model_center;       // 模型中心
 var cameraResetPosition;
 
-function initRender() { //渲染方式
+function initRender() {                 //渲染方式
     renderer = new THREE.WebGLRenderer({
         alpha: true,
         antialias: true
@@ -22,7 +22,7 @@ function initRender() { //渲染方式
 
 function getModelUrl() {
     var storage = window.localStorage;
-    model_url = storage["url"]; // 模型路径
+    model_url = storage["url"];     // 模型路径
 }
 
 var fontModel;
@@ -42,15 +42,12 @@ function initErrorModel() {
         //font.computeVertexNormals();
         font.center()
 
-        var material = new THREE.MeshLambertMaterial({
-            color: '#ff4c4c',
-            side: THREE.DoubleSide
-        });
+        var material = new THREE.MeshLambertMaterial({color: '#ff4c4c', side: THREE.DoubleSide});
         fontModel = new THREE.Mesh(font, material);
-        fontModel.position.set(0, 0, -45);
+        fontModel.position.set(0,0,-45);
         //设置位置
         fontModel.name = "error_model"
-        // fontModel.position.x = -(font.boundingBox.max.x- font.boundingBox.min.x ) / 2; //计算出整个模型的宽度的一半
+       // fontModel.position.x = -(font.boundingBox.max.x- font.boundingBox.min.x ) / 2; //计算出整个模型的宽度的一半
         console.log(fontModel.position);
         scene.add(fontModel);
     });
@@ -60,7 +57,7 @@ var camera;
 
 function initCamera() {
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100000);
-    camera.position.set(0, 0, 1); //摄像机位置
+    camera.position.set(0, 0, 1);               //摄像机位置
 }
 
 var scene;
@@ -85,19 +82,19 @@ document.addEventListener("dblclick", function (ev) {
     initPosition = false;
 })
 
-function gradeChange() { // 获取模型的路径
+function gradeChange() {            // 获取模型的路径
     var objS = document.getElementById("mySelect");
     var grade = objS.options[objS.selectedIndex].value;
     if (grade == model_url) {
         return;
     }
-    model_url = grade; // 模型路径传入
+    model_url = grade;          // 模型路径传入
     console.log(model_url);
-    disposeScene(); // 去掉场景内部的其他模型；
-    initLoader(); // 开始加载模型；
+    disposeScene();         // 去掉场景内部的其他模型；
+    initLoader();       // 开始加载模型；
 }
 
-function initLight() { //灯光渲染
+function initLight() {      //灯光渲染
     light = new THREE.HemisphereLight(0xffffff, 0x444444);
     light.position.set(0, 200, 0);
     scene.add(light);
@@ -132,14 +129,12 @@ function initLoader() {
     };
     if (model_url.indexOf('.fbx') > 0) {
 
-        var loader = new THREE.FBXLoader(); // 加载fbx 模型
+        var loader = new THREE.FBXLoader();    // 加载fbx 模型
         try {
             loader.load(model_url, function (object) {
 
                 object.mixer = new THREE.AnimationMixer(object);
-                if (object.mixer.time == 0) {
-                    throw 'error';
-                }
+
                 mixers.push(object.mixer);
 
                 var action = object.mixer.clipAction(object.animations[0]);
@@ -154,16 +149,16 @@ function initLoader() {
                     }
 
                 });
-                modelShow.add(object);
+                modelShow.add( object);
 
                 var box = new THREE.Box3();
                 //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
                 box.expandByObject(modelShow);
                 model_center = box.getCenter();
-                object.position.y = -model_center.y;
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                initGrid(-model_center.y);
+                object.position.y = - model_center.y;
+                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                initGrid(- model_center.y);
                 scene.add(modelShow);
                 initPosition = true;
 
@@ -183,10 +178,10 @@ function initLoader() {
                 //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
                 box.expandByObject(modelShow);
                 model_center = box.getCenter();
-                obj.position.y = -model_center.y;
-                camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                initGrid(-model_center.y);
+                obj.position.y = - model_center.y;
+                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                initGrid(- model_center.y);
                 scene.add(modelShow);
                 initPosition = true;
 
@@ -201,17 +196,17 @@ function initLoader() {
         try {
             objectLoader.load(model_url, function (obj) {
                 console.log(model_url);
-                modelShow.add(obj);
+                modelShow.add( obj);
                 var box = new THREE.Box3();
                 //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
                 box.expandByObject(modelShow);
                 model_center = box.getCenter();
-                obj.position.y = -model_center.y;
-                camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                initGrid(-model_center.y);
+                obj.position.y = - model_center.y;
+                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                initGrid(- model_center.y);
                 initPosition = true;
-                scene.add(obj);
+                scene.add(modelShow);
             }, onProgress, onError);
         } catch (e) {
             initErrorModel();
@@ -226,14 +221,14 @@ function initLoader() {
                 gltf.scene.traverse(function (child) {
                     if (child.isMesh) {
                         if (child.geometry.boundingSphere < 1) {
-                            camera.position.z = returnPosition_z(2, 1);
-                            cameraResetPosition = returnPosition_z(2, 1);
+                            camera.position.z = returnPosition_z(2,1);
+                            cameraResetPosition = returnPosition_z(2,1);
                         } else if (mesh.geometry.boundingSphere < 5) {
-                            camera.position.z = returnPosition_z(10, 5);
-                            cameraResetPosition = returnPosition_z(10, 5);
-                        } else if (mesh.geometry.boundingSphere < 10) {
-                            camera.position.z = returnPosition_z(20, 10);
-                            cameraResetPosition = returnPosition_z(20, 10);
+                            camera.position.z = returnPosition_z(10,5);
+                            cameraResetPosition = returnPosition_z(10,5);
+                        }else if (mesh.geometry.boundingSphere < 10) {
+                            camera.position.z = returnPosition_z(20,10);
+                            cameraResetPosition = returnPosition_z(20,10);
                         }
                     }
                 });
@@ -256,17 +251,17 @@ function initLoader() {
                 var mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
-                modelShow.add(mesh);
+                modelShow.add( mesh);
                 var box = new THREE.Box3();
                 //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
                 box.expandByObject(modelShow);
                 model_center = box.getCenter();
-                mesh.position.y = -model_center.y;
-                camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                mesh.position.y = - model_center.y;
+                camera.position.z = returnPosition_z( (box.max.y - box.min.y),box.max.z);
+                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
                 console.log(model_center.y);
                 console.log(camera.position);
-                initGrid(-model_center.y);
+                initGrid(- model_center.y);
                 scene.add(mesh);
                 initPosition = false;
             }, onProgress, onError);
@@ -280,23 +275,21 @@ function initLoader() {
 }
 
 var controls;
-
-function returnPosition_z(model_h, position_z_max) {
+function  returnPosition_z(model_h,position_z_max) {
     return 1.414 * Math.abs(model_h) + position_z_max;
 }
-
-function initControls() { //控制脚本
+function initControls() {           //控制脚本
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.addEventListener('change', render);
-    controls.enableDamping = true; //定义可以拖拽
+    controls.enableDamping = true;               //定义可以拖拽
     controls.dampingFactor = 0.3;
     controls.enableZoom = true;
     controls.enablePan = true;
-    controls.rotateSpeed = 0.3; //控制旋转速度
-    controls.zoomSpeed = 0.5; //缩放速度
-    controls.autoRotateSpeed = 0.6; //自动旋转速度
+    controls.rotateSpeed = 0.3;                 //控制旋转速度
+    controls.zoomSpeed = 0.5;                   //缩放速度
+    controls.autoRotateSpeed = 0.6;             //自动旋转速度
     controls.dampingFactor = 0.6;
-    controls.autoRotate = false; //控制是否自动旋转
+    controls.autoRotate = false;                //控制是否自动旋转
 
 }
 
@@ -337,7 +330,7 @@ function animate() {
 }
 
 
-function draw() { //初始化方法
+function draw() {       //初始化方法
 
     getModelUrl();
     initCamera();

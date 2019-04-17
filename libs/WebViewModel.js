@@ -4,7 +4,9 @@ var initPosition = true;
 var clock = new THREE.Clock();
 var model_url     // 模型路径
 var model_center;       // 模型中心
-var cameraResetPosition;
+var cameraResetPosition = 0;
+var cameraResetPositionY = 0;
+var modelIndexUrl = '';
 
 function initRender() {                 //渲染方式
     renderer = new THREE.WebGLRenderer({
@@ -23,6 +25,7 @@ function initRender() {                 //渲染方式
 function getModelUrl() {
     var storage = window.localStorage;
     model_url = storage["url"];     // 模型路径
+    modelIndexUrl = model_url.toLowerCase();
 }
 
 var fontModel;
@@ -42,12 +45,12 @@ function initErrorModel() {
         //font.computeVertexNormals();
         font.center()
 
-        var material = new THREE.MeshLambertMaterial({color: '#ff4c4c', side: THREE.DoubleSide});
+        var material = new THREE.MeshLambertMaterial({ color: '#ff4c4c', side: THREE.DoubleSide });
         fontModel = new THREE.Mesh(font, material);
-        fontModel.position.set(0,0,-45);
+        fontModel.position.set(0, 0, -45);
         //设置位置
         fontModel.name = "error_model"
-       // fontModel.position.x = -(font.boundingBox.max.x- font.boundingBox.min.x ) / 2; //计算出整个模型的宽度的一半
+        // fontModel.position.x = -(font.boundingBox.max.x- font.boundingBox.min.x ) / 2; //计算出整个模型的宽度的一半
         console.log(fontModel.position);
         scene.add(fontModel);
     });
@@ -65,9 +68,6 @@ var grid
 
 function initScene() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xd7d7d7);
-
-
 }
 
 function initGrid(position_Y) {
@@ -127,85 +127,97 @@ function initLoader() {
     var onError = function () {
         initErrorModel();
     };
-    if (model_url.indexOf('.fbx') > 0) {
+    if (modelIndexUrl.indexOf('.fbx') > 0) {
+        //FBXLoader
+        loadJs("libs/FBXLoader.js", function () {
+            loadJs("libs/inflate.min.js", function () {
+                var loader = new THREE.FBXLoader();    // 加载fbx 模型
+                try {
+                    loader.load(model_url, function (object) {
 
-        var loader = new THREE.FBXLoader();    // 加载fbx 模型
-        try {
-            loader.load(model_url, function (object) {
+                        object.mixer = new THREE.AnimationMixer(object);
 
-                object.mixer = new THREE.AnimationMixer(object);
+                        mixers.push(object.mixer);
 
-                mixers.push(object.mixer);
+                        var action = object.mixer.clipAction(object.animations[0]);
+                        action.play();
 
-                var action = object.mixer.clipAction(object.animations[0]);
-                action.play();
+                        object.traverse(function (child) {
 
-                object.traverse(function (child) {
+                            if (child.isMesh) {
 
-                    if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                            }
 
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
+                        });
+                        modelShow.add(object);
+                        var box = new THREE.Box3();
+                        //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
+                        box.expandByObject(modelShow);
+                        model_center = box.getCenter();
+                        object.position.y = - model_center.y;
+                        object.rotation.y = Math.PI / 4;
+                        camera.position.y = Math.abs(box.max.y - box.min.y);
+                        cameraResetPositionY = Math.abs(box.max.y - box.min.y);
+                        cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                        camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                        initGrid(-Math.abs(box.max.y - box.min.y) / 2);
+                        scene.add(modelShow);
+                        initPosition = true;
 
-                });
-                modelShow.add( object);
-                object.rotation.y = Math.PI / 4;
-                var box = new THREE.Box3();
-                //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
-                box.expandByObject(modelShow);
-                model_center = box.getCenter();
-                object.position.y = - model_center.y;
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                initGrid(-Math.abs(box.max.y - box.min.y)/2);
-                scene.add(modelShow);
-                initPosition = true;
+                    }, onProgress, onError);
+                } catch (e) {
+                    initErrorModel();
+                }
+            });
+        });
+    } else if (modelIndexUrl.indexOf('.obj') > 0) {
+        loadJs("libs/DDSLoader.js", function () {
+            loadJs("libs/OBJLoader.js", function () {
+                THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+                var loader = new THREE.OBJLoader();
+                try {
+                    loader.load(model_url, function (obj) {
 
-            }, onProgress, onError);
-        } catch (e) {
-            initErrorModel();
-        }
-    } else if (model_url.indexOf('.obj') > 0) {
-
-        THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
-        var loader = new THREE.OBJLoader();
-        try {
-            loader.load(model_url, function (obj) {
-
-                modelShow.add(obj);
-                obj.rotation.y = Math.PI / 4;
-                var box = new THREE.Box3();
-                //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
-                box.expandByObject(modelShow);
-                model_center = box.getCenter();
-                obj.position.y = - model_center.y;
-                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                initGrid(-Math.abs(box.max.y - box.min.y)/2);
-                scene.add(modelShow);
-                initPosition = true;
-
-
-            }, onProgress, onError);
-        } catch (e) {
-            initErrorModel();
-        }
-    } else if (model_url.indexOf('.json') > 0) {
-        // json loader
+                        modelShow.add(obj);
+                        console.log(obj);
+                        var box = new THREE.Box3();
+                        //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
+                        box.expandByObject(modelShow);
+                        model_center = box.getCenter();
+                        obj.position.y = - model_center.y;
+                        obj.rotation.y = Math.PI / 4;
+                        camera.position.y = Math.abs(box.max.y - box.min.y);
+                        cameraResetPositionY = Math.abs(box.max.y - box.min.y);
+                        camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                        cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                        initGrid(-Math.abs(box.max.y - box.min.y) / 2);
+                        scene.add(modelShow);
+                        initPosition = true;
+                    }, onProgress, onError);
+                } catch (e) {
+                    initErrorModel();
+                }
+            })
+        });
+    } else if (modelIndexUrl.indexOf('.json') > 0) {
+        // json loader 
         var objectLoader = new THREE.ObjectLoader();
         try {
             objectLoader.load(model_url, function (obj) {
-                console.log(model_url);
-                modelShow.add( obj);
-                obj.rotation.y = Math.PI / 4;
+                modelShow.add(obj);
+                // obj.rotation.y = Math.PI / 4;
                 var box = new THREE.Box3();
                 //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
                 box.expandByObject(modelShow);
                 model_center = box.getCenter();
                 obj.position.y = - model_center.y;
-                camera.position.z = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
+                obj.rotation.y = Math.PI / 4;
+                camera.position.y = Math.abs(box.max.y - box.min.y);
+                cameraResetPositionY = Math.abs(box.max.y - box.min.y);
+                camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
                 initGrid(- model_center.y);
                 initPosition = true;
                 scene.add(modelShow);
@@ -213,73 +225,108 @@ function initLoader() {
         } catch (e) {
             initErrorModel();
         }
-    } else if (model_url.indexOf('.gltf') > 0) {
-        var loader = new THREE.GLTFLoader();
-        try {
-            loader.load(model_url, function (gltf) {
+    } else if (modelIndexUrl.indexOf('.gltf') > 0) {
+        loadJs("libs/GLTFLoader.js", function () {
+            var loader = new THREE.GLTFLoader();
+            try {
+                loader.load(model_url, function (gltf) {
+                    console.log(gltf);
+                    modelShow = gltf.scene;
+                    cameraResetPosition = 1;
+                    gltf.scene.traverse(function (child) {
+                        if (child.isMesh) {
 
-                modelShow = gltf.scene;
-                gltf.scene.rotation.y = Math.PI / 4;
-                cameraResetPosition = 1;
-                gltf.scene.traverse(function (child) {
-                    if (child.isMesh) {
-                        if (child.geometry.boundingSphere < 1) {
-                            camera.position.z = returnPosition_z(2,1);
-                            cameraResetPosition = returnPosition_z(2,1);
-                        } else if (mesh.geometry.boundingSphere < 5) {
-                            camera.position.z = returnPosition_z(10,5);
-                            cameraResetPosition = returnPosition_z(10,5);
-                        }else if (mesh.geometry.boundingSphere < 10) {
-                            camera.position.z = returnPosition_z(20,10);
-                            cameraResetPosition = returnPosition_z(20,10);
+                            child.material.opacity = 0.9;
+                            child.material.transparent = true;
+
+                            if (child.geometry.boundingSphere < 1) {
+                                camera.position.z = returnPosition_z(2, 1);
+                                cameraResetPosition = returnPosition_z(2, 1);
+                            } else if (child.geometry.boundingSphere < 5) {
+                                camera.position.z = returnPosition_z(10, 5);
+                                cameraResetPosition = returnPosition_z(10, 5);
+                            } else if (child.geometry.boundingSphere < 10) {
+                                camera.position.z = returnPosition_z(20, 10);
+                                cameraResetPosition = returnPosition_z(20, 10);
+                            }
                         }
-                    }
-                });
-                initPosition = true;
-                scene.add(gltf.scene);
-                console.log(gltf);
-            }, onProgress, onError);
-        } catch (e) {
-            initErrorModel();
-        }
-    } else if (model_url.indexOf('.stl') > 0) {
-        var loader = new THREE.STLLoader();
-        try {
-            loader.load(model_url, function (geometry) {
-                var material = new THREE.MeshPhongMaterial({
-                    color: 0xff5533,
-                    specular: 0x111111,
-                    shininess: 200
-                })
-                var mesh = new THREE.Mesh(geometry, material);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                mesh.rotation.y = Math.PI / 4;
-                modelShow.add( mesh);
-                var box = new THREE.Box3();
-                //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
-                box.expandByObject(modelShow);
-                model_center = box.getCenter();
-                mesh.position.y = - model_center.y;
-                camera.position.z = returnPosition_z( (box.max.y - box.min.y),box.max.z);
-                cameraResetPosition = returnPosition_z((box.max.y - box.min.y),box.max.z);
-                console.log(model_center.y);
-                console.log(camera.position);
-                initGrid(-Math.abs(box.max.y - box.min.y)/2);
-                scene.add(mesh);
-                initPosition = false;
-            }, onProgress, onError);
-        } catch (e) {
-            initErrorModel();
-        }
+                    });
+                    initPosition = true;
+                    scene.add(modelShow);
+                }, onProgress, onError);
+            } catch (e) {
+                initErrorModel();
+            }
+        });
 
-    } else {
+    } else if (modelIndexUrl.indexOf('.stl') > 0) {
+        loadJs("libs/STLLoader.js", function () {
+            var loader = new THREE.STLLoader();
+            try {
+                loader.load(model_url, function (geometry) {
+                    var material = new THREE.MeshPhongMaterial({
+                        color: 0xff5533,
+                        specular: 0x111111,
+                        shininess: 200
+                    })
+                    var mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    modelShow.add(mesh);
+                    console.log(modelShow);
+                    var box = new THREE.Box3();
+                    //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
+                    box.expandByObject(modelShow);
+                    model_center = box.getCenter();
+                    mesh.position.y = - model_center.y;
+                    mesh.rotation.y = Math.PI / 4;
+                    camera.position.y = Math.abs(box.max.y - box.min.y);
+                    cameraResetPositionY = Math.abs(box.max.y - box.min.y);
+                    camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                    cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                    console.log(model_center.y);
+                    console.log(camera.position);
+                    initGrid(-Math.abs(box.max.y - box.min.y) / 2);
+                    scene.add(modelShow);
+                    initPosition = false;
+                }, onProgress, onError);
+            } catch (e) {
+                initErrorModel();
+            }
+        });
+
+    } else if (modelIndexUrl.indexOf('.3ds') > 0) {
+        loadJs("libs/TDSLoader.js", function () {
+            var loader = new THREE.TDSLoader();
+            try {
+                loader.load(model_url, function (object) {
+                    modelShow.add(object);
+                    var box = new THREE.Box3();
+                    //通过传入的object3D对象来返回当前模型的最小大小，值可以使一个mesh也可以使group
+                    box.expandByObject(modelShow);
+                    model_center = box.getCenter();
+                    object.position.y = model_center.y;
+                    object.rotation.y = Math.PI / 4;
+                    camera.position.y = Math.abs(box.max.y - box.min.y);
+                    cameraResetPositionY = Math.abs(box.max.y - box.min.y);
+                    camera.position.z = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                    cameraResetPosition = returnPosition_z((box.max.y - box.min.y), box.max.z);
+                    initGrid(-Math.abs(box.max.y - box.min.y) / 2);
+                    scene.add(modelShow);
+                    initPosition = false;
+                }, onProgress, onError);
+            } catch (e) {
+                initErrorModel();
+            }
+        });
+    }
+    else {
         initErrorModel();
     }
 }
 
 var controls;
-function  returnPosition_z(model_h,position_z_max) {
+function returnPosition_z(model_h, position_z_max) {
     return 1.414 * Math.abs(model_h) + position_z_max;
 }
 function initControls() {           //控制脚本
@@ -293,8 +340,7 @@ function initControls() {           //控制脚本
     controls.zoomSpeed = 0.5;                   //缩放速度
     controls.autoRotateSpeed = 0.6;             //自动旋转速度
     controls.dampingFactor = 0.6;
-    controls.autoRotate = false;                //控制是否自动旋转
-
+    controls.autoRotate = false;                //控制是否自动旋转 
 }
 
 // model loader
@@ -327,8 +373,8 @@ function animate() {
     }
     requestAnimationFrame(animate);
     if (modelShow && modelShow.children.length > 0 && !initPosition) {
-        console.log(camera.rotation);
-        camera.position.set(0, 0, cameraResetPosition);
+        camera.position.set(0, cameraResetPositionY, cameraResetPosition);
+        console.log('enter');
         initPosition = true;
     }
 }
@@ -347,3 +393,25 @@ function draw() {       //初始化方法
 
     window.onresize = onWindowResize;
 }
+
+function loadJs(url, callback) {
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    if (typeof (callback) != "undefined") {
+        if (script.readyState) {
+            script.onreadystatechange = function () {
+                if (script.readyState == "loaded" || script.readyState == "complete") {
+                    script.onreadystatechange = null;
+                    callback();
+                }
+            }
+        } else {
+            script.onload = function () {
+                callback();
+            }
+        }
+    }
+    script.src = url;
+    document.body.appendChild(script);
+}
+
